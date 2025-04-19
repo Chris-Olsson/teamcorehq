@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {# Ta bort den felaktiga raden härifrån. Lägg till en statisk rubrik istället. #}
+    <h1>Wiki Index</h1> {# Korrekt rubrik för listsidan #}
+
+    {# Knapp för att skapa ny sida #}
+    <div class="mb-3">
+        {% if current_user.is_authenticated and current_user.is_moderator() %}
+            <a href="{{ url_for('main.wiki_create_page') }}" class="btn btn-success">Skapa Ny Wiki-sida</a>
+        {% endif %}
+    </div>
+
+    {# Loopa igenom listan 'pages' - här är 'page' definierad för varje varv #}
+    {% if pages %}
+        <div class="list-group">
+            {% for page in pages %} {# Här definieras 'page' lokalt i loopen #}
+                <a href="{{ url_for('main.wiki_view_page', slug=page.slug) }}" class="list-group-item list-group-item-action">
+                    {{ page.title }} {# Detta är korrekt INUTI loopen #}
+                    <small class="text-muted d-block">Senast ändrad: {{ page.last_modified_at.strftime('%Y-%m-%d %H:%M') if page.last_modified_at else 'Okänt' }}</small>
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>Det finns inga wiki-sidor ännu.</p>
+        {% if current_user.is_authenticated and current_user.is_moderator() %}
+             <p>Klicka på knappen ovan för att skapa den första!</p>
+        {% endif %}
+    {% endif %}
+
+{% endblock content %}

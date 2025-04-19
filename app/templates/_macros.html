@@ -1,0 +1,49 @@
+{# _macros.html - Återanvändbara mall-makron #}
+
+{# Macro för att rendera pagineringslänkar #}
+{# Kräver: pagination = Pagineringsobjekt från .paginate() #}
+{#         endpoint = Namnet på route-funktionen (t.ex. 'main.view_category') #}
+{#         slug = Kategoriens slug (om det är kategori-paginering, annars None) #}
+{#         thread_id = Trådens ID (om det är tråd-paginering, annars None) #}
+{% macro pagination_widget(pagination, endpoint, slug=None, thread_id=None) %} {# ÄNDRAD SIGNATUR #}
+  {% if pagination and pagination.pages > 1 %} {# Visa bara om det finns mer än en sida #}
+    <nav aria-label="Sidnavigation">
+      <ul class="pagination justify-content-center"> {# Centrera pagineringen #}
+
+        {# Föregående sida-länk #}
+        <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+          {# ÄNDRING: Skicka med slug och thread_id explicit #}
+          <a class="page-link" href="{% if pagination.has_prev %}{{ url_for(endpoint, page=pagination.prev_num, slug=slug, thread_id=thread_id) }}{% else %}#{% endif %}" aria-label="Föregående">
+            <span aria-hidden="true">&laquo;</span>
+            <span class="visually-hidden">Föregående</span>
+          </a>
+        </li>
+
+        {# Sidnummer-länkar #}
+        {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+          {% if p %}
+            {% if p == pagination.page %}
+              <li class="page-item active" aria-current="page"><span class="page-link">{{ p }}</span></li>
+            {% else %}
+              {# ÄNDRING: Skicka med slug och thread_id explicit #}
+              <li class="page-item"><a class="page-link" href="{{ url_for(endpoint, page=p, slug=slug, thread_id=thread_id) }}">{{ p }}</a></li>
+            {% endif %}
+          {% else %}
+            {# Ellipsis (...) för utelämnade sidnummer #}
+            <li class="page-item disabled"><span class="page-link">&hellip;</span></li>
+          {% endif %}
+        {% endfor %}
+
+        {# Nästa sida-länk #}
+        <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+           {# ÄNDRING: Skicka med slug och thread_id explicit #}
+          <a class="page-link" href="{% if pagination.has_next %}{{ url_for(endpoint, page=pagination.next_num, slug=slug, thread_id=thread_id) }}{% else %}#{% endif %}" aria-label="Nästa">
+            <span aria-hidden="true">&raquo;</span>
+            <span class="visually-hidden">Nästa</span>
+          </a>
+        </li>
+
+      </ul>
+    </nav>
+  {% endif %}
+{% endmacro %}

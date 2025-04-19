@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% import '_macros.html' as macros %}
+
+{% block content %}
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('main.forum_index') }}">Forum Index</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('main.view_category', slug=thread.category.slug) }}">{{ thread.category.name }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ thread.title }}</li>
+      </ol>
+    </nav>
+    <h1>{{ thread.title }}</h1>
+    <p class="text-muted">
+        Startad av {{ thread.author.username if thread.author else 'Okänd' }} den {{ thread.created_at.strftime('%Y-%m-%d %H:%M') }}
+    </p>
+
+    <div class="d-flex justify-content-end mb-2">
+        {{ macros.pagination_widget(pagination, 'main.view_thread', thread_id=thread.id) }}
+    </div>
+
+    <hr>
+
+    {% if posts %}
+        {% for post in posts %}
+            <div class="card mb-3" id="post-{{ post.id }}">
+                <div class="card-header d-flex justify-content-between">
+                    <div>
+                        <strong>{{ post.author.username if post.author else 'Okänd' }}</strong>
+                    </div>
+                    <small class="text-muted">
+                        {{ post.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                        <a href="#post-{{ post.id }}" title="Permanent länk till detta inlägg">#{{ post.id }}</a>
+                    </small>
+                </div>
+                <div class="card-body forum-post-content">
+                    {{ post.html_content|safe if post.html_content else '' }}
+                </div>
+                <div class="card-footer text-end">
+                    {# Logik för Redigera/Ta bort knappar #}
+                    {% if current_user.is_authenticated %}
+                        {% if current_user.id == post.author_id %}
+                            <a href="{{ url_for('main.edit_post', post_id=post.id) }}" class="btn btn-sm btn-outline-primary ms-1">Redigera</a>
+                            {% if post.id != first_post_id %}
+                                <form action="{{ url_for('main.delete_post', post_id=post.id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Är du säker på att du vill ta bort detta inlägg permanent?');">
+                                    {{ reply_form.hidden_tag() }}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger ms-1">Ta bort</button>
+                                </form>
+                            {% endif %}
+                        {% elif current_user.is_moderator() %}
+                            <a href="{{ url_for('main.edit_post', post_id=post.id) }}" class="btn btn-sm btn-outline-warning ms-1" title="Redigera som moderator">Redigera (Mod)</a>
+                            {% if post.id != first_post_id %}
+                                <form action="{{ url_for('main.delete_post', post_id=post.id) }}" method="POST" style="display: inline;" onsubmit="return confirm('[MOD] Är du säker på att du vill ta bort detta inlägg permanent?');">
+                                    {{ reply_form.hidden_tag() }}
+                                    <button type="submit" class="btn btn-sm btn-danger ms-1" title="Ta bort som moderator">Ta bort (Mod)</button>
+                                </form>
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>Det finns inga inlägg i denna tråd ännu.</p> {# Ska normalt inte hända om första inlägget inte kan tas bort #}
+    {% endif %}
+
+    <div class="d-flex justify-content-end mt-3">
+        {{ macros.pagination_widget(pagination, 'main.view_thread', thread_id=thread.id) }}
+    </div>
+
+    <hr>
+
+    {# Formulär för att svara #}
+    {% if current_user.is_authenticated %}
+        <h3 id="reply">Skriv ett svar</h3>
+        <form method="POST" action="{{ url_for('main.reply_to_thread', thread_id=thread.id) }}">
+            {{ reply_form.hidden_tag() }}
+            <div class="mb-3">
+                 {% if reply_form.content.errors %}
+                    {{ reply_form.content(class="form-control is-invalid forum-textarea") }}
+                    <div class="invalid-feedback">{% for error in reply_form.content.errors %}<span>{{ error }}</span>{% endfor %}</div>
+                {% else %}
+                    {{ reply_form.content(class="form-control forum-textarea") }}
+                {% endif %}
+                 <small class="form-text text-muted">Du kan använda Markdown för formatering.</small>
+            </div>
+            <div class="mb-3">
+                {{ reply_form.submit(class="btn btn-primary") }}
+            </div>
+        </form>
+
+        {# --- NY KNAPP/FORMULÄR FÖR ATT TA BORT TRÅD (MODERATOR) --- #}
+        {% if current_user.is_authenticated and current_user.is_moderator() %}
+            <div class="mt-4 border-top pt-3">
+                <h5>Moderatoråtgärder för Tråd</h5>
+                <form action="{{ url_for('main.delete_thread', thread_id=thread.id) }}" method="POST" onsubmit="return confirm('ÄR DU HELT SÄKER?\nAtt ta bort tråden raderar alla inlägg permanent!');">
+                    {{ reply_form.hidden_tag() }} {# Återanvänd CSRF #}
+                    <button type="submit" class="btn btn-danger">Ta bort Hela Tråden</button>
+                </form>
+            </div>
+        {% endif %}
+        {# --- SLUT NY KNAPP/FORMULÄR --- #}
+
+    {% else %}
+        <p><a href="{{ url_for('main.login', next=request.url) }}">Logga in</a> för att skriva ett svar.</p>
+    {% endif %}
+
+
+{% endblock content %}
+
+{# Styles och Scripts (oförändrade) #}
+{% block styles %}
+{{ super() }}
+<style>
+    .forum-textarea { min-height: 150px; }
+    .forum-post-content pre code { display: block; padding: 1em; background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 0.25rem; overflow-x: auto; font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 0.9em; }
+    .forum-post-content table { width: 100%; margin-bottom: 1rem; color: #212529; border-collapse: collapse; }
+    .forum-post-content th, .forum-post-content td { padding: 0.75rem; vertical-align: top; border-top: 1px solid #dee2e6; }
+    .forum-post-content thead th { vertical-align: bottom; border-bottom: 2px solid #dee2e6; background-color: #e9ecef; }
+    .forum-post-content tbody tr:nth-of-type(odd) { background-color: rgba(0, 0, 0, 0.05); }
+    .spoiler { background-color: #333; color: #333; padding: 0 5px; border-radius: 3px; transition: background-color 0.3s, color 0.3s; cursor: pointer; }
+    .spoiler:hover, .spoiler.revealed { background-color: #f8f9fa; color: #212529; }
+</style>
+{% endblock styles %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        document.querySelectorAll('.spoiler').forEach(spoiler => {
+            spoiler.addEventListener('click', () => { spoiler.classList.toggle('revealed'); });
+        });
+    });
+</script>
+{% endblock scripts %}

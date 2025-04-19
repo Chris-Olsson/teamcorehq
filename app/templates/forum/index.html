@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Forum Index</h1>
+
+    <div class="mb-3">
+        {% if current_user.is_authenticated %}
+            {# --- UPPDATERAD KNAPP (pekar till första kategorin?) --- #}
+            {# Kanske bättre att ta bort denna eller länka till en generell "välj kategori"-sida senare #}
+            <a href="{{ url_for('main.new_thread', slug=categories[0].slug) if categories else '#' }}"
+               class="btn btn-success {% if not categories %}disabled{% endif %}">Starta Ny Tråd</a>
+            {# --- SLUT UPPDATERAD KNAPP --- #}
+        {% endif %}
+    </div>
+
+    {% if categories %}
+        <div class="list-group">
+            {% for category in categories %}
+                {# Länken till kategorin var redan korrekt #}
+                <a href="{{ url_for('main.view_category', slug=category.slug) }}" class="list-group-item list-group-item-action flex-column align-items-start">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">{{ category.name }}</h5>
+                        {# Visa antal trådar #}
+                        <small class="text-muted">{{ category.threads.count() }} tråd(ar)</small>
+                    </div>
+                    {% if category.description %}
+                        <p class="mb-1">{{ category.description }}</p>
+                    {% endif %}
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>Det finns inga forumkategorier ännu.</p>
+        {% if current_user.is_authenticated and current_user.is_admin() %}
+            <p><a href="#">Skapa den första kategorin (Admin).</a></p> {# Länk till admin för kategorier senare #}
+        {% endif %}
+    {% endif %}
+
+{% endblock content %}

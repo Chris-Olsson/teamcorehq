@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {# Rubrik som visar vilken kategori tråden skapas i #}
+    <h1>Skapa Ny Tråd i {{ category.name }}</h1>
+
+    <hr>
+
+    {# Formulär för att skapa tråden #}
+    <form method="POST" action="{{ url_for('main.new_thread', slug=category.slug) }}">
+        {{ form.hidden_tag() }} {# CSRF-token #}
+
+        {# Fält för trådtitel #}
+        <div class="mb-3">
+            {{ form.title.label(class="form-label") }}
+            {% if form.title.errors %}
+                {{ form.title(class="form-control is-invalid") }}
+                <div class="invalid-feedback">
+                    {% for error in form.title.errors %}<span>{{ error }}</span>{% endfor %}
+                </div>
+            {% else %}
+                {{ form.title(class="form-control") }}
+            {% endif %}
+        </div>
+
+        {# Fält för första inlägget #}
+        <div class="mb-3">
+            {{ form.content.label(class="form-label") }}
+            {% if form.content.errors %}
+                {{ form.content(class="form-control is-invalid forum-textarea") }}
+                 <div class="invalid-feedback">
+                    {% for error in form.content.errors %}<span>{{ error }}</span>{% endfor %}
+                </div>
+            {% else %}
+                {{ form.content(class="form-control forum-textarea") }}
+            {% endif %}
+            <small class="form-text text-muted">Du kan använda Markdown för formatering.</small>
+        </div>
+
+        {# Knappar #}
+         <div class="mb-3">
+            {{ form.submit(class="btn btn-primary") }}
+             <a href="{{ url_for('main.view_category', slug=category.slug) }}" class="btn btn-secondary">Avbryt</a>
+        </div>
+
+    </form>
+
+{% endblock content %}
+
+{# Stilar för textarean #}
+{% block styles %}
+{{ super() }}
+<style>
+    .forum-textarea {
+        min-height: 250px;
+    }
+</style>
+{% endblock styles %}

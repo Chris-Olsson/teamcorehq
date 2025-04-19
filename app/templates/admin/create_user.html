@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Skapa Ny Användare</h1>
+    <p>Fyll i uppgifterna för den nya användaren.</p>
+
+    <hr>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <form method="POST" action="{{ url_for('main.create_user') }}">
+                {{ form.hidden_tag() }} {# CSRF-skydd #}
+
+                {# Användarnamnsfält #}
+                <div class="mb-3">
+                    {{ form.username.label(class="form-label") }}
+                    {% if form.username.errors %}
+                        {{ form.username(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.username.errors %}<span>{{ error }}</span>{% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.username(class="form-control") }}
+                    {% endif %}
+                </div>
+
+                {# E-postfält #}
+                <div class="mb-3">
+                    {{ form.email.label(class="form-label") }}
+                    {% if form.email.errors %}
+                        {{ form.email(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.email.errors %}<span>{{ error }}</span>{% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.email(class="form-control") }}
+                    {% endif %}
+                </div>
+
+                {# Lösenordsfält #}
+                <div class="mb-3">
+                    {{ form.password.label(class="form-label") }}
+                    {% if form.password.errors %}
+                        {{ form.password(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.password.errors %}<span>{{ error }}</span>{% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.password(class="form-control") }}
+                    {% endif %}
+                </div>
+
+                {# Bekräfta Lösenordsfält #}
+                <div class="mb-3">
+                    {{ form.confirm_password.label(class="form-label") }}
+                     {% if form.confirm_password.errors %}
+                        {{ form.confirm_password(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.confirm_password.errors %}<span>{{ error }}</span>{% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.confirm_password(class="form-control") }}
+                    {% endif %}
+                </div>
+
+                {# Rollfält (Dropdown - QuerySelectField) #}
+                <div class="mb-3">
+                    {{ form.role.label(class="form-label") }}
+                    {% if form.role.errors %}
+                        {{ form.role(class="form-select is-invalid") }} {# Använd form-select #}
+                        <div class="invalid-feedback">
+                            {% for error in form.role.errors %}<span>{{ error }}</span>{% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.role(class="form-select") }} {# Använd form-select #}
+                    {% endif %}
+                </div>
+
+                {# Knappar #}
+                <div class="mb-3">
+                    {{ form.submit(class="btn btn-success") }}
+                    <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-secondary">Avbryt</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+{% endblock content %}

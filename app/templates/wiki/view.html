@@ -1,0 +1,108 @@
+{% extends "base.html" %} {# Ärver från grundmallen #}
+
+{% block content %}
+    {# Huvudrubrik för sidan, använder sidans titel #}
+    <h1>{{ page.title }}</h1>
+
+    {# Visar när sidan senast ändrades och av vem (om information finns) #}
+    <div class="text-muted mb-3">
+        <small>
+            Senast ändrad: {{ page.last_modified_at.strftime('%Y-%m-%d %H:%M') if page.last_modified_at else 'Okänt' }}
+            {% if page.editor %}
+                av {{ page.editor.username }}
+            {% endif %}
+        </small>
+    </div>
+
+    {# Knappar för olika åtgärder #}
+    <div class="mb-3">
+        {# Knappar som bara visas för inloggade moderatorer/admins #}
+        {% if current_user.is_authenticated and current_user.is_moderator() %}
+             {# Länk till redigeringssidan för denna sida #}
+             <a href="{{ url_for('main.wiki_edit_page', slug=page.slug) }}" class="btn btn-primary">Redigera Sida</a>
+             {# Länk till historiksidan för denna sida (ska vara klickbar) #}
+             <a href="{{ url_for('main.wiki_page_history', slug=page.slug) }}" class="btn btn-secondary">Visa Historik</a>
+        {# Knapp för förslag från vanliga inloggade användare (framtida funktion) #}
+        {% elif current_user.is_authenticated %}
+             {# <a href="#" class="btn btn-info disabled" title="Kommer snart">Föreslå Ändring</a> #}
+        {% endif %}
+         {# Knapp för att gå tillbaka till wiki-index #}
+         <a href="{{ url_for('main.wiki_list_pages') }}" class="btn btn-outline-secondary">Tillbaka till Wiki Index</a>
+    </div>
+
+    <hr> {# Avdelare #}
+
+    {# Här renderas sidans innehåll efter att ha konverterats från Markdown till HTML #}
+    {# filtret |safe är viktigt för att HTML-taggar ska tolkas korrekt #}
+    <div class="wiki-content">
+        {{ html_content|safe }}
+    </div>
+
+{% endblock content %} {# Slut på huvudinnehållet #}
+
+{# Block för att lägga till CSS-stilar specifika för denna sida #}
+{% block styles %}
+{{ super() }} {# Inkluderar stilar från base.html #}
+<style>
+    /* Enkel stil för kodblock från markdown2 (fenced-code-blocks) */
+    pre code {
+        display: block;
+        padding: 1em;
+        background-color: #f8f9fa; /* Ljusgrå bakgrund */
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        overflow-x: auto; /* Scroll om koden är bred */
+        font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 0.9em;
+    }
+    /* Enkel stil för tabeller från markdown2 */
+    .wiki-content table {
+        width: 100%;
+        margin-bottom: 1rem;
+        color: #212529;
+        border-collapse: collapse;
+    }
+    .wiki-content th, .wiki-content td {
+        padding: 0.75rem;
+        vertical-align: top;
+        border-top: 1px solid #dee2e6;
+    }
+    .wiki-content thead th {
+        vertical-align: bottom;
+        border-bottom: 2px solid #dee2e6;
+        background-color: #e9ecef;
+    }
+    .wiki-content tbody tr:nth-of-type(odd) {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+    /* Spoiler (kräver JS för att klicka) */
+    .spoiler {
+        background-color: #333;
+        color: #333;
+        padding: 0 5px;
+        border-radius: 3px;
+        transition: background-color 0.3s, color 0.3s;
+        cursor: pointer;
+    }
+    .spoiler:hover, .spoiler.revealed {
+         background-color: #f8f9fa;
+         color: #212529;
+    }
+
+</style>
+{% endblock styles %}
+
+{# Block för att lägga till JavaScript specifikt för denna sida #}
+{% block scripts %}
+{{ super() }} {# Inkluderar scripts från base.html #}
+<script>
+    // Enkel JS för att avslöja spoilers vid klick
+    document.addEventListener('DOMContentLoaded', (event) => {
+        document.querySelectorAll('.spoiler').forEach(spoiler => {
+            spoiler.addEventListener('click', () => {
+                spoiler.classList.toggle('revealed');
+            });
+        });
+    });
+</script>
+{% endblock scripts %}

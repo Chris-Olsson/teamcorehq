@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Hantera Forumkategorier</h1>
+
+    {# Lista över befintliga kategorier #}
+    <h2 class="mt-4">Befintliga Kategorier</h2>
+    {% if categories %}
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Namn</th>
+                    <th>Slug</th>
+                    <th>Beskrivning</th>
+                    <th>Antal Trådar</th>
+                    <th>Åtgärder</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for category in categories %}
+                    <tr>
+                        <td>{{ category.id }}</td>
+                        <td>{{ category.name }}</td>
+                        <td><code>{{ category.slug }}</code></td>
+                        <td>{{ category.description if category.description else '-' }}</td>
+                        <td>{{ category.threads.count() }}</td> {# Visa antal trådar #}
+                        <td>
+                            <a href="{{ url_for('main.edit_forum_category', category_id=category.id) }}" class="btn btn-sm btn-outline-primary">Redigera</a>
+                            {# Knapp för att ta bort kategori - använder ett litet formulär #}
+                            <form action="{{ url_for('main.delete_forum_category', category_id=category.id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Är du säker på att du vill ta bort kategorin &quot;{{ category.name }}&quot;?\nDetta går INTE att ångra och fungerar bara om kategorin är tom!');">
+                                {# --- ÄNDRING HÄR: Använd form.hidden_tag() --- #}
+                                {{ form.hidden_tag() }} {# CSRF-skydd från huvudformuläret #}
+                                {# --- SLUT ÄNDRING --- #}
+                                <button type="submit" class="btn btn-sm btn-outline-danger ms-1"
+                                        {% if category.threads.count() > 0 %}disabled title="Kan inte ta bort kategorier som innehåller trådar"{% endif %}>
+                                    Ta bort
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>Inga forumkategorier har skapats ännu.</p>
+    {% endif %}
+
+    <hr>
+
+    {# Formulär för att skapa ny kategori #}
+    <h2 class="mt-4">Skapa Ny Kategori</h2>
+    {# Huvudformuläret som 'form' refererar till ovan #}
+    <form method="POST" action="{{ url_for('main.manage_forum_categories') }}">
+         {{ form.hidden_tag() }} {# CSRF-skydd #}
+         <div class="row">
+             <div class="col-md-5 mb-3">
+                 {{ form.name.label(class="form-label") }}
+                 {% if form.name.errors %}
+                     {{ form.name(class="form-control is-invalid") }}
+                     <div class="invalid-feedback">
+                         {% for error in form.name.errors %}<span>{{ error }}</span>{% endfor %}
+                     </div>
+                 {% else %}
+                     {{ form.name(class="form-control") }}
+                 {% endif %}
+             </div>
+             <div class="col-md-7 mb-3">
+                  {{ form.description.label(class="form-label") }}
+                  {% if form.description.errors %}
+                      {{ form.description(class="form-control is-invalid", rows="3") }}
+                       <div class="invalid-feedback">
+                          {% for error in form.description.errors %}<span>{{ error }}</span>{% endfor %}
+                       </div>
+                  {% else %}
+                      {{ form.description(class="form-control", rows="3") }}
+                  {% endif %}
+             </div>
+         </div>
+          <div class="mb-3">
+                {{ form.submit(class="btn btn-success") }}
+         </div>
+    </form>
+
+{% endblock content %}

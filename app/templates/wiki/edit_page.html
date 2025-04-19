@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {# Visa olika rubriker beroende på om vi skapar eller redigerar #}
+    {% if is_new %}
+        <h1>Skapa Ny Wiki-sida</h1>
+        <p>Fyll i titel, URL-slug och innehåll (Markdown).</p>
+    {% else %}
+        <h1>Redigera: {{ page.title }}</h1> {# Visa nuvarande titel vid redigering #}
+        <p>Ändra titel, slug eller innehåll. Lägg gärna till en kommentar om ändringen.</p>
+    {% endif %}
+
+    <hr>
+
+    {# Formuläret postar till sig själv (antingen create- eller edit-routen) #}
+    <form method="POST" action="">
+        {{ form.hidden_tag() }} {# CSRF-skydd #}
+
+        {# Titel-fält #}
+        <div class="mb-3">
+            {{ form.title.label(class="form-label") }}
+            {% if form.title.errors %}
+                {{ form.title(class="form-control is-invalid") }}
+                <div class="invalid-feedback">
+                    {% for error in form.title.errors %}<span>{{ error }}</span>{% endfor %}
+                </div>
+            {% else %}
+                {{ form.title(class="form-control") }}
+            {% endif %}
+        </div>
+
+        {# Slug-fält #}
+        <div class="mb-3">
+            {{ form.slug.label(class="form-label") }}
+            <small class="form-text text-muted d-block mb-1">Använd endast små bokstäver, siffror och bindestreck.</small>
+            {% if form.slug.errors %}
+                {{ form.slug(class="form-control is-invalid") }}
+                <div class="invalid-feedback">
+                    {% for error in form.slug.errors %}<span>{{ error }}</span>{% endfor %}
+                </div>
+            {% else %}
+                {{ form.slug(class="form-control") }}
+            {% endif %}
+        </div>
+
+        {# Innehålls-fält (TextArea) #}
+        <div class="mb-3">
+            {{ form.content.label(class="form-label") }}
+            {% if form.content.errors %}
+                {{ form.content(class="form-control is-invalid wiki-textarea") }}
+                <div class="invalid-feedback">
+                    {% for error in form.content.errors %}<span>{{ error }}</span>{% endfor %}
+                </div>
+            {% else %}
+                {{ form.content(class="form-control wiki-textarea") }}
+            {% endif %}
+            <small class="form-text text-muted">Du kan använda <a href="https://www.markdownguide.org/basic-syntax/" target="_blank">Markdown</a> för formatering.</small>
+        </div>
+
+        {# --- NYTT FÄLT FÖR KOMMENTAR --- #}
+        <div class="mb-3">
+            {{ form.comment.label(class="form-label") }}
+             {% if form.comment.errors %}
+                {{ form.comment(class="form-control is-invalid", placeholder="Kort beskrivning av ändringen...") }}
+                <div class="invalid-feedback">
+                    {% for error in form.comment.errors %}<span>{{ error }}</span>{% endfor %}
+                </div>
+            {% else %}
+                {{ form.comment(class="form-control", placeholder="Kort beskrivning av ändringen...") }}
+            {% endif %}
+        </div>
+        {# --- SLUT NYTT FÄLT --- #}
+
+
+        {# Knappar #}
+        <div class="mb-3">
+            {{ form.submit(class="btn btn-primary") }} {# Spara-knapp #}
+            {% if is_new %}
+                <a href="{{ url_for('main.wiki_list_pages') }}" class="btn btn-secondary">Avbryt</a>
+            {% else %}
+                <a href="{{ url_for('main.wiki_view_page', slug=page.slug) }}" class="btn btn-secondary">Avbryt</a>
+            {% endif %}
+        </div>
+    </form>
+
+{% endblock content %}
+
+{# CSS för textarean #}
+{% block styles %}
+{{ super() }}
+<style>
+    .wiki-textarea {
+        min-height: 300px;
+        font-family: monospace;
+    }
+</style>
+{% endblock styles %}

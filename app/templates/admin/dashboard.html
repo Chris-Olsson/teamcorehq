@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Moderatorpanel</h1>
+    <p>Välkommen, {{ current_user.username }}!</p>
+
+    <h2 class="mt-4">Användarlista</h2>
+    {# Knapp för att skapa ny användare #}
+    <div class="mb-3">
+        <a href="{{ url_for('main.create_user') }}" class="btn btn-success">
+             Skapa Ny Användare {# Ta bort/lägg till ikon om du vill #}
+        </a>
+        {# Länk till rollhantering (kommer senare) #}
+        {# <a href="{{ url_for('main.manage_roles') }}" class="btn btn-info ms-2">Hantera Roller</a> #}
+    </div>
+
+    {% if users %}
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Användarnamn</th>
+                    <th>E-post</th>
+                    <th>Roll</th> {# Kolumnrubrik för roll #}
+                    <th>Åtgärder</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.email }}</td>
+                        {# --- ÄNDRING: Visa rollens namn från relationen --- #}
+                        <td>
+                            {% if user.role %}
+                                <span class="badge bg-secondary">{{ user.role.name.capitalize() }}</span>
+                            {% else %}
+                                <span class="badge bg-danger">Ingen roll</span> {# Om en användare saknar roll #}
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('main.edit_user', user_id=user.id) }}" class="btn btn-sm btn-outline-primary">Redigera</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>Inga användare hittades.</p>
+    {% endif %}
+
+    <hr>
+
+    {# Andra admin-funktioner kan läggas här #}
+
+{% endblock content %}

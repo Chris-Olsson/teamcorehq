@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Redigera Inlägg</h1>
+
+    {# Visa lite kontext: länk tillbaka till tråden #}
+    <p>
+        Du redigerar ett inlägg i tråden:
+        <a href="{{ url_for('main.view_thread', thread_id=post.thread_id) }}">{{ post.thread.title }}</a>
+    </p>
+    <blockquote class="blockquote">
+        <small>{{ post.content | truncate(100) }}</small> {# Visa en förhandsgranskning #}
+    </blockquote>
+
+
+    <hr>
+
+    {# Redigeringsformuläret #}
+    <form method="POST" action="{{ url_for('main.edit_post', post_id=post.id) }}">
+        {{ form.hidden_tag() }} {# CSRF-token #}
+        <div class="mb-3">
+            {{ form.content.label(class="form-label", text="Ditt redigerade inlägg (Markdown)") }}
+             {% if form.content.errors %}
+                {{ form.content(class="form-control is-invalid forum-textarea") }}
+                <div class="invalid-feedback">
+                    {% for error in form.content.errors %}<span>{{ error }}</span>{% endfor %}
+                </div>
+            {% else %}
+                {{ form.content(class="form-control forum-textarea") }}
+            {% endif %}
+             <small class="form-text text-muted">Du kan använda Markdown för formatering.</small>
+        </div>
+        <div class="mb-3">
+            {# Använd SubmitField från formuläret, men ändra knapptexten #}
+            {{ form.submit(class="btn btn-primary", value="Spara Ändringar") }}
+            {# Länk för att avbryta och gå tillbaka till tråden #}
+            <a href="{{ url_for('main.view_thread', thread_id=post.thread_id) }}" class="btn btn-secondary">Avbryt</a>
+        </div>
+    </form>
+
+{% endblock content %}
+
+{# Stilar för textarean #}
+{% block styles %}
+{{ super() }}
+<style>
+    .forum-textarea {
+        min-height: 200px; /* Lite högre för redigering? */
+    }
+</style>
+{% endblock styles %}

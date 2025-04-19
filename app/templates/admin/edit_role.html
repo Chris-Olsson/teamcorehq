@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {# Rubrik som visar vilken roll som redigeras #}
+    <h1>Redigera Roll: {{ role_to_edit.name }}</h1>
+
+    <hr>
+
+    {# Formuläret postar till edit_role-routen för den specifika rollen #}
+    <form method="POST" action="{{ url_for('main.edit_role', role_id=role_to_edit.id) }}">
+        {{ form.hidden_tag() }} {# CSRF-skydd #}
+
+        {# Fält för rollnamn #}
+        <div class="mb-3">
+            {{ form.name.label(class="form-label") }}
+            {% if form.name.errors %}
+                {{ form.name(class="form-control is-invalid") }}
+                <div class="invalid-feedback">
+                    {% for error in form.name.errors %}<span>{{ error }}</span>{% endfor %}
+                </div>
+            {% else %}
+                {{ form.name(class="form-control") }}
+            {% endif %}
+        </div>
+
+        {# Fält för beskrivning #}
+        <div class="mb-3">
+             {{ form.description.label(class="form-label") }}
+             {% if form.description.errors %}
+                 {{ form.description(class="form-control is-invalid") }}
+                  <div class="invalid-feedback">
+                     {% for error in form.description.errors %}<span>{{ error }}</span>{% endfor %}
+                  </div>
+             {% else %}
+                 {{ form.description(class="form-control") }}
+             {% endif %}
+        </div>
+
+        {# Knappar #}
+        <div class="mb-3">
+            {{ form.submit(class="btn btn-primary") }} {# Spara-knapp #}
+            {# Länk för att avbryta och gå tillbaka till rollistan #}
+            <a href="{{ url_for('main.manage_roles') }}" class="btn btn-secondary">Avbryt</a>
+        </div>
+    </form>
+
+{% endblock content %}

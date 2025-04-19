@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Välkommen till Team Core HQ!</h1>
+    <p>Detta är hemsidan för vår spelgemenskap.</p>
+
+    <div class="mt-4">
+        <h2>Serverstatus (Placeholder)</h2>
+        <div id="server-status">
+            Laddar serverstatus...
+        </div>
+    </div>
+
+    {% endblock content %}
+
+{% block scripts %}
+    {{ super() }} {# Inkludera scripts från base.html om det finns #}
+    <script>
+        // Enkel placeholder för att hämta serverstatus (vi bygger ut detta senare)
+        fetch('/api/server-status')
+            .then(response => response.json())
+            .then(data => {
+                const statusDiv = document.getElementById('server-status');
+                statusDiv.innerHTML = `
+                    <strong>${data.server_name}</strong>:
+                    <span class="badge bg-${data.status === 'online' ? 'success' : 'danger'}">${data.status}</span>
+                    (${data.players}/${data.max_players} spelare)
+                `;
+            })
+            .catch(error => {
+                console.error('Error fetching server status:', error);
+                document.getElementById('server-status').innerText = 'Kunde inte hämta serverstatus.';
+            });
+    </script>
+{% endblock scripts %}

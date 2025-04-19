@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Hantera Roller</h1>
+
+    {# Lista över befintliga roller #}
+    <h2 class="mt-4">Befintliga Roller</h2>
+    {% if roles %}
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Namn</th>
+                    <th>Beskrivning</th>
+                    <th>Antal Användare</th> {# Visa hur många som har rollen #}
+                    <th>Åtgärder</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for role in roles %}
+                    <tr>
+                        <td>{{ role.id }}</td>
+                        <td>{{ role.name }}</td>
+                        <td>{{ role.description if role.description else '-' }}</td>
+                        {# Visa antalet användare med denna roll #}
+                        <td>{{ role.users.count() }}</td>
+                        <td>
+                            <a href="{{ url_for('main.edit_role', role_id=role.id) }}" class="btn btn-sm btn-outline-primary">Redigera</a>
+                            {# Knapp för att ta bort roll (kommenteras ut tills vidare) #}
+                            {# <form action="#" method="POST" style="display: inline;" onsubmit="return confirm('Är du säker på att du vill ta bort rollen {{ role.name }}? Användare med denna roll kommer att förlora den.');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" {% if role.users.count() > 0 %}disabled title="Kan inte ta bort roller som används"{% endif %}>Ta bort</button>
+                            </form> #}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>Inga roller har skapats ännu.</p>
+    {% endif %}
+
+    <hr>
+
+    {# Formulär för att skapa ny roll #}
+    <h2 class="mt-4">Skapa Ny Roll</h2>
+    {# Formuläret postar till samma sida (manage_roles) #}
+    <form method="POST" action="{{ url_for('main.manage_roles') }}">
+         {{ form.hidden_tag() }} {# CSRF-skydd #}
+         <div class="row">
+             <div class="col-md-4 mb-3">
+                 {{ form.name.label(class="form-label") }}
+                 {% if form.name.errors %}
+                     {{ form.name(class="form-control is-invalid") }}
+                     <div class="invalid-feedback">
+                         {% for error in form.name.errors %}<span>{{ error }}</span>{% endfor %}
+                     </div>
+                 {% else %}
+                     {{ form.name(class="form-control") }}
+                 {% endif %}
+             </div>
+             <div class="col-md-6 mb-3">
+                  {{ form.description.label(class="form-label") }}
+                  {% if form.description.errors %}
+                      {{ form.description(class="form-control is-invalid") }}
+                       <div class="invalid-feedback">
+                          {% for error in form.description.errors %}<span>{{ error }}</span>{% endfor %}
+                       </div>
+                  {% else %}
+                      {{ form.description(class="form-control") }}
+                  {% endif %}
+             </div>
+             <div class="col-md-2 mb-3 align-self-end">
+                  {{ form.submit(class="btn btn-success w-100") }}
+             </div>
+         </div>
+    </form>
+
+{% endblock content %}
